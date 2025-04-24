@@ -7,4 +7,5 @@ import (
 
 type TournamentsRepository interface {
 	GetAll(ctx context.Context) ([]models.Tournament, error)
+	Create(ctx context.Context, tournament *models.Tournament) (models.Tournament, error)
 }

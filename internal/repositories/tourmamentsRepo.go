@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 	"graphql-poc/internal/database"
 	"graphql-poc/internal/models"
 )
@@ -21,18 +22,17 @@ func (r TournamentRepo) GetAll(ctx context.Context) ([]models.Tournament, error)
 	}
 	defer rows.Close()
 
-	var tournaments []models.Tournament
-	for rows.Next() {
-		var tournament models.Tournament
-		if err := rows.Scan(&tournament); err != nil {
-			return nil, err
-		}
-		tournaments = append(tournaments, tournament)
+	return pgx.CollectRows(rows, pgx.RowToStructByName[models.Tournament])
+}
+
+func (r TournamentRepo) Create(ctx context.Context, tournament *models.Tournament) (models.Tournament, error) {
+	var id int
+	err := r.db.Pool.QueryRow(ctx, "INSERT INTO tournaments (name, description, date, players_amount) VALUES ($1, $2, $3, $4) RETURNING id",
+		tournament.Name, tournament.Description, tournament.Date, tournament.PlayersAmount).Scan(&id)
+	if err != nil {
+		return models.Tournament{}, err
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return tournaments, nil
+	tournament.ID = id
+	return *tournament, nil
 }
