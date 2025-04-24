@@ -20,7 +20,7 @@ func main() {
 
 	tournamentHandler := rest.NewTournamentHandler(tournamentRepo)
 
-	router.HandleFunc("GET /tournaments", tournamentHandler.GetAll)
+	router.HandleFunc("GET /api/v1/tournaments", tournamentHandler.GetAll)
 
 	err := http.ListenAndServe(":8787", router)
 	if err != nil {
