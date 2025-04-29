@@ -54,7 +54,7 @@ func (th *TournamentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tournament.Created = pgtype.Date{Time: time.Now()}
+	tournament.Created = pgtype.Date{Time: time.Now(), Valid: true}
 
 	createdTournament, err := th.repository.Create(r.Context(), &tournament)
 	if err != nil {

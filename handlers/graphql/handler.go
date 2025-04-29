@@ -5,6 +5,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"graphql-poc/internal/models"
 	"graphql-poc/internal/repositories/interfaces"
+	"time"
 )
 
 type GraphQLHandler struct {
@@ -51,7 +52,7 @@ func (gh *GraphQLHandler) InitSchema() (*graphql.Schema, error) {
 			"tournaments": &graphql.Field{
 				Type: graphql.NewList(tournamentType),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return gh.repository.GetAll(p.Context)
+					return gh.repository.GetAllForGQL(p.Context)
 				},
 			},
 		},
@@ -79,14 +80,19 @@ func (gh *GraphQLHandler) InitSchema() (*graphql.Schema, error) {
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					name := p.Args["name"].(string)
 					description := p.Args["description"].(string)
-					date := p.Args["date"].(pgtype.Date)
+					date := p.Args["date"].(time.Time)
 					playersAmount := p.Args["players_amount"].(int)
 
+					// no checks here because it's just PoC
+					currentDate := pgtype.Date{Time: time.Now(), Valid: true}
+					tDate := pgtype.Date{Time: date, Valid: true}
 					tournament := models.Tournament{
 						Name:          name,
 						Description:   description,
-						Date:          date,
+						Date:          tDate,
 						PlayersAmount: playersAmount,
+						Created:       currentDate,
+						Updated:       &currentDate,
 					}
 
 					return gh.repository.Create(p.Context, &tournament)
